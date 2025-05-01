@@ -188,7 +188,8 @@ func InsertFileRecords(pRecords [][]string, pColIndex map[string]int) ([]models.
 		lFileData.ProductName = cleanString(lRecord[pColIndex["Product Name"]])
 		lFileData.Category = cleanString(lRecord[pColIndex["Category"]])
 		lFileData.Region = cleanString(lRecord[pColIndex["Region"]])
-		lFileData.DateOfSale = cleanString(lRecord[pColIndex["Date of Sale"]])
+		parsedDate, _ := time.Parse("1/2/2006", lRecord[pColIndex["Date of Sale"]])
+		lFileData.DateOfSale = parsedDate.Format("2006-01-02")
 		lFileData.QuantitySold, _ = strconv.Atoi(lRecord[pColIndex["Quantity Sold"]])
 		lFileData.UnitPrice, _ = strconv.ParseFloat(lRecord[pColIndex["Unit Price"]], 64)
 		lFileData.Discount, _ = strconv.ParseFloat(lRecord[pColIndex["Discount"]], 64)
@@ -227,6 +228,8 @@ func InsertFileRecords(pRecords [][]string, pColIndex map[string]int) ([]models.
 			UnitPrice:     lFileData.UnitPrice,
 			Discount:      lFileData.Discount,
 			ShippingCost:  lFileData.ShippingCost,
+			DateOfSale:    lFileData.DateOfSale,
+			Region:        lFileData.Region,
 			PaymentMethod: lFileData.PaymentMethod,
 			CreatedDate:   lFileData.CreatedDate,
 			CreatedBy:     lFileData.CreatedBy,

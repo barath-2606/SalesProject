@@ -27,7 +27,7 @@ type ReadDataResp struct {
 }
 
 type CustomerDetails struct {
-	CustomerId      string `gorm:"column:customer_id"`
+	CustomerId      string `gorm:"column:customer_id;primaryKey"`
 	CustomerName    string `gorm:"column:customer_name"`
 	CustomerEmail   string `gorm:"column:customer_email"`
 	CustomerAddress string `gorm:"column:customer_address"`
@@ -36,7 +36,7 @@ type CustomerDetails struct {
 }
 
 type ProductDetails struct {
-	ProductId   string  `gorm:"column:product_id"`
+	ProductId   string  `gorm:"column:product_id;primaryKey"`
 	ProductName string  `gorm:"column:product_name"`
 	Category    string  `gorm:"column:category"`
 	UnitPrice   float64 `gorm:"column:unit_price"`
@@ -45,7 +45,7 @@ type ProductDetails struct {
 }
 
 type OrderDetails struct {
-	OrderId       string  `gorm:"column:order_id"`
+	OrderId       string  `gorm:"column:order_id;primaryKey"`
 	ProductId     string  `gorm:"column:product_id"`
 	CustomerId    string  `gorm:"column:customer_id"`
 	QuantitySold  int     `gorm:"quantity_sold"`
@@ -54,6 +54,7 @@ type OrderDetails struct {
 	Region        string  `json:"region"`
 	ShippingCost  float64 `gorm:"shipping_cost"`
 	PaymentMethod string  `gorm:"payment_method"`
+	DateOfSale    string  `gorm:"date_of_sale"`
 	CreatedDate   string  `gorm:"column:created_date"`
 	CreatedBy     string  `gorm:"column:created_by"`
 }

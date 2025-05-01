@@ -13,6 +13,15 @@ import (
 
 func HandleTotalRevenue(w http.ResponseWriter, r *http.Request) {
 	log.Println("HandleTotalRevenue (+)")
+
+	if r.Method != http.MethodGet {
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	}
+
 	startStr := r.Header.Get("start")
 	endStr := r.Header.Get("end")
 
@@ -41,7 +50,7 @@ func getTotRev(lStartDate, lEndDate string) (float64, error) {
 
 	lTotRevenue := 0.0
 
-	lErr := db.GPostgres.Table("order_details").Where("date_of_sale <= ? and date_of_sale >= ?", lStartDate, lEndDate).Select("COALESCE(SUM((unit_price * quantity_sold) * (1 - discount)), 0) AS total_sales").Scan(&lTotRevenue).Error
+	lErr := db.GPostgres.Table("order_details").Where("date_of_sale >= ? and date_of_sale <= ?", lStartDate, lEndDate).Select("COALESCE(SUM((unit_price * quantity_sold) * (1 - discount)), 0) AS total_sales").Scan(&lTotRevenue).Error
 
 	if lErr != nil {
 		log.Println("Error gTR 001 :", lErr.Error())
@@ -55,7 +64,7 @@ func getTotRev(lStartDate, lEndDate string) (float64, error) {
 func HandleTotalRevenueByProduct(w http.ResponseWriter, r *http.Request) {
 	log.Println("HandleTotalRevenueByProduct (+)")
 
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPut {
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 		} else {
@@ -72,6 +81,7 @@ func HandleTotalRevenueByProduct(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error HTRBP 001 :", lErr.Error())
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = lErr.Error()
+		goto MARSHALBLOCK
 	}
 
 	lErr = json.Unmarshal(lBody, &lreq)
@@ -79,12 +89,14 @@ func HandleTotalRevenueByProduct(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error HTRBP 002 :", lErr.Error())
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = lErr.Error()
+		goto MARSHALBLOCK
 	}
 
 	if lreq.ProductName == "" {
 		log.Println("Error HTRBP 003 : Product Name should not be empty")
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = "Product Name should not be empty"
+		goto MARSHALBLOCK
 	}
 
 	lRevResp.TotRev, lErr = getByProduct(lreq.StartDate, lreq.EndDate, lreq.ProductName)
@@ -92,8 +104,9 @@ func HandleTotalRevenueByProduct(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error HTRBP 004 :", lErr.Error())
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = lErr.Error()
+		goto MARSHALBLOCK
 	}
-
+MARSHALBLOCK:
 	lData, lErr := json.Marshal(lRevResp)
 	if lErr != nil {
 		log.Println("Error HTRBP 005 :", lErr.Error())
@@ -116,7 +129,7 @@ func getByProduct(str, end, product string) (float64, error) {
 		return lProductRevenue, lErr
 	}
 
-	lErr = db.GPostgres.Table("order_details").Where("product_id = ? and date_of_sale <= ? and date_of_sale >= ?", lProductId, str, end).Select("coalesce(SUM((unit_price * quantity_sold) * (1 - discount)),0) AS total_sales").Scan(&lProductRevenue).Error
+	lErr = db.GPostgres.Table("order_details").Where("product_id = ? and date_of_sale >= ? and date_of_sale <= ?", lProductId, str, end).Select("coalesce(SUM((unit_price * quantity_sold) * (1 - discount)),0) AS total_sales").Scan(&lProductRevenue).Error
 	if lErr != nil {
 		log.Println("Error gBP 002 :", lErr.Error())
 		return lProductRevenue, lErr
@@ -129,7 +142,7 @@ func getByProduct(str, end, product string) (float64, error) {
 func HandleTotalRevenueByCategory(w http.ResponseWriter, r *http.Request) {
 	log.Println("HandleTotalRevenueByProduct (+)")
 
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPut {
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 		} else {
@@ -146,6 +159,7 @@ func HandleTotalRevenueByCategory(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error HTRBP 001 :", lErr.Error())
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = lErr.Error()
+		goto MARSHALBLOCK
 	}
 
 	lErr = json.Unmarshal(lBody, &lreq)
@@ -153,12 +167,14 @@ func HandleTotalRevenueByCategory(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error HTRBP 002 :", lErr.Error())
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = lErr.Error()
+		goto MARSHALBLOCK
 	}
 
 	if lreq.Category == "" {
 		log.Println("Error HTRBP 003 : Category should not be empty")
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = "Category should not be empty"
+		goto MARSHALBLOCK
 	}
 
 	lRevResp.TotRev, lErr = getBycategory(lreq.StartDate, lreq.EndDate, lreq.Category)
@@ -166,8 +182,9 @@ func HandleTotalRevenueByCategory(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error HTRBP 004 :", lErr.Error())
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = lErr.Error()
+		goto MARSHALBLOCK
 	}
-
+MARSHALBLOCK:
 	lData, lErr := json.Marshal(lRevResp)
 	if lErr != nil {
 		log.Println("Error HTRBP 005 :", lErr.Error())
@@ -190,7 +207,7 @@ func getBycategory(str, end, category string) (float64, error) {
 		return lCategoryRevenue, lErr
 	}
 
-	lErr = db.GPostgres.Table("order_details").Where("product_id = ? and date_of_sale <= ? and date_of_sale >= ?", lProductId, str, end).Select("coalesce(SUM((unit_price * quantity_sold) * (1 - discount)),0) AS total_sales").Scan(&lCategoryRevenue).Error
+	lErr = db.GPostgres.Table("order_details").Where("product_id = ? and date_of_sale >= ? and date_of_sale <= ?", lProductId, str, end).Select("coalesce(SUM((unit_price * quantity_sold) * (1 - discount)),0) AS total_sales").Scan(&lCategoryRevenue).Error
 	if lErr != nil {
 		log.Println("Error gBP 002 :", lErr.Error())
 		return lCategoryRevenue, lErr
@@ -203,7 +220,7 @@ func getBycategory(str, end, category string) (float64, error) {
 func HandleTotalRevenueByRegion(w http.ResponseWriter, r *http.Request) {
 	log.Println("HandleTotalRevenueByProduct (+)")
 
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPut {
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 		} else {
@@ -220,6 +237,7 @@ func HandleTotalRevenueByRegion(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error HTRBP 001 :", lErr.Error())
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = lErr.Error()
+		goto MARSHALBLOCK
 	}
 
 	lErr = json.Unmarshal(lBody, &lreq)
@@ -227,12 +245,14 @@ func HandleTotalRevenueByRegion(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error HTRBP 002 :", lErr.Error())
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = lErr.Error()
+		goto MARSHALBLOCK
 	}
 
 	if lreq.Region == "" {
 		log.Println("Error HTRBP 003 : Region should not be empty")
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = "Category should not be empty"
+		goto MARSHALBLOCK
 	}
 
 	lRevResp.TotRev, lErr = getByRegion(lreq.StartDate, lreq.EndDate, lreq.Region)
@@ -240,8 +260,9 @@ func HandleTotalRevenueByRegion(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error HTRBP 004 :", lErr.Error())
 		lRevResp.Status = "E"
 		lRevResp.ErrMsg = lErr.Error()
+		goto MARSHALBLOCK
 	}
-
+MARSHALBLOCK:
 	lData, lErr := json.Marshal(lRevResp)
 	if lErr != nil {
 		log.Println("Error HTRBP 005 :", lErr.Error())
@@ -257,7 +278,7 @@ func getByRegion(str, end, region string) (float64, error) {
 
 	var lRegionRevenue float64
 
-	lErr := db.GPostgres.Table("order_details").Where("region = ? and date_of_sale <= ? and date_of_sale >= ?", region, str, end).Select("coalesce(SUM((unit_price * quantity_sold) * (1 - discount)),0) AS total_sales").Scan(&lRegionRevenue).Error
+	lErr := db.GPostgres.Table("order_details").Where("region = ? and date_of_sale >= ? and date_of_sale <= ?", region, str, end).Select("coalesce(SUM((unit_price * quantity_sold) * (1 - discount)),0) AS total_sales").Scan(&lRegionRevenue).Error
 	if lErr != nil {
 		log.Println("Error gBP 002 :", lErr.Error())
 		return lRegionRevenue, lErr

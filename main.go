@@ -58,7 +58,7 @@ func main() {
 	lRouter.HandleFunc("/revenue/byProduct", revenue.HandleTotalRevenueByProduct).Methods(http.MethodPut)
 	lRouter.HandleFunc("/revenue/byCategory", revenue.HandleTotalRevenueByCategory).Methods(http.MethodPut)
 	lRouter.HandleFunc("/revenue/byRegion", revenue.HandleTotalRevenueByRegion).Methods(http.MethodPut)
-	lRouter.HandleFunc("/refresh", db.RefreshDataHandler)
+	lRouter.HandleFunc("/refresh", db.RefreshDataHandler).Methods(http.MethodDelete)
 
 	handlerWithMiddleware := middleware.LoggingMiddleware(db.GPostgres)(lRouter)
 	http.ListenAndServe(":28050", handlerWithMiddleware)
