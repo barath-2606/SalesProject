@@ -9,19 +9,18 @@ import (
 
 func StartDailyRefreshJob() {
 	go func() {
-		ticker := time.NewTicker(24 * time.Hour)
-		defer ticker.Stop()
-
 		for {
-			log.Println("Starting scheduled data refresh...")
-			err := refreshData()
-			if err != nil {
-				log.Println("Scheduled refresh failed:", err)
-			} else {
-				log.Println("Scheduled refresh succeeded")
+			// log.Println("Starting scheduled data refresh...")
+			lCurrentHour := time.Now().Hour()
+			lCurrentMinute := time.Now().Minute()
+			if lCurrentHour == 0 && lCurrentMinute == 0 {
+				err := refreshData()
+				if err != nil {
+					log.Println("Scheduled refresh failed:", err)
+				} else {
+					log.Println("Scheduled refresh succeeded")
+				}
 			}
-
-			<-ticker.C
 		}
 	}()
 }

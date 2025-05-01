@@ -1,29 +1,62 @@
+# Go PostgreSQL Project with Auto Table Creation
 
-# API Documentation
+This Go project automatically creates tables in PostgreSQL on startup using configuration from a JSON file specified by the user.
 
-This section provides details on the available API endpoints in the Go PostgreSQL Project.
+## Tables
+- customer_details
+- product_details
+- order_details
+- sales_file_data
 
----
+## How to Run
 
-## 1. Upload Sales Data
+### 1. Set Up PostgreSQL Database
+
+Before running the project, **create the database manually**.
+
+```bash
+psql -U postgres -c "CREATE DATABASE postgres;"
+```
+### 2. Mention the database credentials in dev.json file
+
+```json
+"database": {
+      "type": "POSTGRES",
+      "uri": "localhost",
+      "name": "your-database-name(postgres)",
+      "username": "your-username",
+      "password": "your-password",
+      "timeout": 90,
+      "profile": true,
+      "runScript": true
+ }
+```
+
+### 3. Run with following Command
+
+```bash
+go run main.go -config=config/dev.json
+```
+
+### 4. Upload Sales Data
 
 - **Endpoint:** `/salesdata/read`
 - **Method:** `POST`
 - **Description:** Uploads a CSV file. Data is inserted into the `sales_file_data` table.
 - **Headers:**
   - `Content-Type: multipart/form-data`
-- **Request:** Form-data with a file input named `file`
+- **Request:** Form-data with a file input named `files`
 - **Response:**
 ```json
 {
-  "status": "success",
-  "message": "File uploaded and data inserted"
+  "status":"S",
+  "errMsg":"",
 }
 ```
 
 ---
 
-## 2. Get Total Revenue by Date
+### 5. Get Total Revenue by Date
 
 - **Endpoint:** `/revenue/total`
 - **Method:** `GET`
@@ -34,13 +67,15 @@ This section provides details on the available API endpoints in the Go PostgreSQ
 - **Response:**
 ```json
 {
+  "status":"S",
+  "errMsg":"",
   "totalRevenue": 12345.67
 }
 ```
 
 ---
 
-## 3. Get Revenue by Product
+### 6. Get Revenue by Product
 
 - **Endpoint:** `/revenue/byProduct`
 - **Method:** `POST`
@@ -56,14 +91,15 @@ This section provides details on the available API endpoints in the Go PostgreSQ
 - **Response:**
 ```json
 {
-  "productName": "Product A",
+  "status":"S",
+  "errMsg":"",
   "totalRevenue": 4567.89
 }
 ```
 
 ---
 
-## 4. Get Revenue by Category
+### 7. Get Revenue by Category
 
 - **Endpoint:** `/revenue/byCategory`
 - **Method:** `POST`
@@ -79,14 +115,15 @@ This section provides details on the available API endpoints in the Go PostgreSQ
 - **Response:**
 ```json
 {
-  "category": "Electronics",
+  "status":"S",
+  "errMsg":"",
   "totalRevenue": 7890.12
 }
 ```
 
 ---
 
-## 5. Get Revenue by Region
+### 8. Get Revenue by Region
 
 - **Endpoint:** `/revenue/byRegion`
 - **Method:** `POST`
@@ -108,9 +145,4 @@ This section provides details on the available API endpoints in the Go PostgreSQ
 }
 ```
 
----
-
-## Notes
-
-- Dates should be in `YYYY-MM-DD` format.
-- Ensure correct content types for all requests.
+Refer config folder for example json
