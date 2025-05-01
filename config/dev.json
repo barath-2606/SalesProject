@@ -1,0 +1,17 @@
+{
+    "port": 5432,
+    "env": "dev",
+    "version": "v1.1.2",
+    "profile": false,
+    "database": {
+      "type": "POSTGRES",
+      "uri": "localhost",
+      "name": "postgres",
+      "username": "postgres",
+      "password": "Best@123",
+      "timeout": 90,
+      "profile": true,
+      "runScript": true
+    }
+  }
+  
